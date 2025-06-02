@@ -1,0 +1,21 @@
+[Unit]
+Description=Gunicorn Service for Django
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User={{ app_user }}
+Group={{ app_group }}
+WorkingDirectory={{ app_path }}
+
+# Load environment variables
+EnvironmentFile={{ app_env_dir_path }}/environment
+
+ExecStart={{ app_venv_path }}/bin/gunicorn \
+          --timeout 120 \
+          --bind unix:/run/gunicorn/gunicorn.sock \
+          --pid /run/gunicorn/gunicorn.pid \
+          mysite.wsgi:application
+
+[Install]
+WantedBy=multi-user.target

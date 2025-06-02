@@ -1,0 +1,6 @@
+---
+- name: Install and configure PostgreSQL
+  hosts: dbservers
+  gather_facts: false
+  roles:
+    - postgres-setup

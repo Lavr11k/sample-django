@@ -1,0 +1,3 @@
+# Django application environment variables
+DJANGO_ALLOWED_HOSTS="*"
+DATABASE_URL="postgres://{{ postgresql_django_user }}:{{ postgresql_django_password }}@{{ postgresql_host }}:{{ postgresql_port }}/{{ postgresql_database }}"

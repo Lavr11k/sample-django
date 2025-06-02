@@ -1,0 +1,7 @@
+---
+- name: Install and configure Django app with Nginx proxy
+  hosts: appservers
+  gather_facts: false
+  roles:
+    - deploy
+    - webserver-setup

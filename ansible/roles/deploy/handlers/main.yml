@@ -1,0 +1,48 @@
+---
+- name: Check for pending migrations
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ app_venv_path }}/bin/python manage.py showmigrations --list"
+    chdir: "{{ app_path  }}"
+  environment:
+    DATABASE_URL: "postgres://{{ postgresql_django_user }}:{{ postgresql_django_password }}@{{ postgresql_host }}:{{ postgresql_port }}/{{ postgresql_database }}"
+  register: migration_check
+  changed_when: "' [ ] ' in migration_check.stdout"
+  notify: Run migrations
+
+- name: Stop the gunicorn socket
+  become: true
+  ansible.builtin.service:
+    name: gunicorn.socket
+    state: stopped
+  listen: Run migrations
+
+- name: Run Django migrations
+  ansible.builtin.command:
+    cmd: "{{ app_venv_path }}/bin/python manage.py migrate"
+    chdir: "{{ app_path }}"
+  environment:
+    DATABASE_URL: "postgres://{{ postgresql_django_user }}:{{ postgresql_django_password }}@{{ postgresql_host }}:{{ postgresql_port }}/{{ postgresql_database }}"
+  listen: Run migrations
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+  listen: Start gunicorn socket
+
+- name: Start and enable gunicorn socket
+  become: true
+  ansible.builtin.service:
+    name: gunicorn.socket
+    state: started
+    enabled: true
+  listen:
+    - Run migrations
+    - Start gunicorn socket
+
+- name: Restart gunicorn service
+  become: true
+  ansible.builtin.service:
+    name: gunicorn
+    state: restarted

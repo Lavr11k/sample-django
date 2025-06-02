@@ -1,0 +1,66 @@
+---
+- name: Create the database
+  become: true
+  become_user: postgres
+  postgresql_db:
+    name: "{{ postgresql_database }}"
+    template: "template0"
+    state: present
+
+- name: Create a user
+  become: true
+  become_user: postgres
+  postgresql_user:
+    login_db: "{{ postgresql_database }}"
+    name: "{{ postgresql_django_user }}"
+    password: "{{ postgresql_django_password }}"
+    state: present
+
+- name: Grant user the needed privileges to the new database
+  become: true
+  become_user: postgres
+  postgresql_privs:
+    login_db: "{{ postgresql_database }}"
+    privs: ALL
+    type: database
+    role: "{{ postgresql_django_user }}"
+    state: present
+
+- name: Grant user privileges on the public schema
+  become: true
+  become_user: postgres
+  postgresql_privs:
+    login_db: "{{ postgresql_database }}"
+    privs: ALL
+    type: schema
+    obj: public
+    role: "{{ postgresql_django_user }}"
+    state: present
+
+- name: Ensure user does not have unnecessary permissions
+  become: true
+  become_user: postgres
+  postgresql_user:
+    name: "{{ postgresql_django_user }}"
+    role_attr_flags: NOSUPERUSER,NOCREATEDB
+    state: present
+
+- name: Grant created user access to created database from VPC CIDR block using md5 authentication
+  become: true
+  postgresql_pg_hba:
+    dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+    contype: host
+    users: "{{ postgresql_django_user }}"
+    source: "{{ vpc_cidr_block }}"
+    databases: "{{ postgresql_database }}"
+    method: md5
+  notify: Restart PostgreSQL service
+
+- name: Replace PostgreSQL configuration file to allow remote connection
+  become: true
+  lineinfile:
+    path: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+    regexp: '^(.*)listen_addresses(.*)$'
+    line: "listen_addresses='*'"
+    backrefs: true
+  notify: Restart PostgreSQL service

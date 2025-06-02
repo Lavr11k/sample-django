@@ -1,0 +1,29 @@
+---
+- name: Validate Nginx config
+  become: true
+  ansible.builtin.command: nginx -t
+  args:
+    chdir: /etc/nginx/
+  register: config_check
+  ignore_errors: true
+  check_mode: false
+  changed_when: false
+  listen: Run Nginx
+
+- name: Print Nginx error if syntax check fails
+  ansible.builtin.debug:
+    var: config_check['stderr_lines']
+  failed_when: config_check['rc'] != 0
+  when:
+    - config_check['stderr_lines'] is defined
+    - config_check['stderr_lines'] != []
+    - config_check['rc'] != 0
+  listen: Run Nginx
+
+- name: Start/reload Nginx
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+    enabled: true
+  listen: Run Nginx

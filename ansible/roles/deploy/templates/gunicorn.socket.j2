@@ -1,0 +1,11 @@
+[Unit]
+Description=Gunicorn Socket for Django
+
+[Socket]
+ListenStream=/run/gunicorn/gunicorn.sock
+SocketUser={{ app_user }}
+SocketGroup={{ app_group }}
+SocketMode=0660
+
+[Install]
+WantedBy=sockets.target

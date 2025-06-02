@@ -1,0 +1,54 @@
+#!/bin/bash
+sudo mkdir -p /home/ubuntu/.ssh
+sudo touch /home/ubuntu/.ssh/known_hosts
+sudo apt update
+sudo apt install unzip -y
+sudo apt install python3-pip -y
+sudo apt install software-properties-common -y
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+sudo apt install ansible -y
+
+# Install AWS CLI
+sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+sudo unzip awscliv2.zip
+sudo ./aws/install
+
+# Retrieve and save database key
+sudo aws ssm get-parameter --name "/bastion/keys/database-key" --with-decryption \
+  --region "eu-central-1" --output text --query Parameter.Value \
+  > /home/ubuntu/.ssh/database-key.pem
+
+# Retrieve and save app key
+sudo aws ssm get-parameter --name "/bastion/keys/app-key" --with-decryption \
+  --region "eu-central-1" --output text --query Parameter.Value \
+  > /home/ubuntu/.ssh/app-key.pem
+
+# Get the instances fingerprints and save to the known_hosts file
+sudo ssh-keyscan -H ${database_private_ip} >> /home/ubuntu/.ssh/known_hosts 2> /dev/null
+
+%{ for addr in app_private_ips ~}
+sudo ssh-keyscan -H ${addr} >> /home/ubuntu/.ssh/known_hosts 2> /dev/null
+%{ endfor ~}
+
+# Set permissions
+sudo chmod 600 /home/ubuntu/.ssh/*.pem
+sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh
+
+# Create Ansible inventory file
+sudo tee /etc/ansible/hosts > /dev/null <<EOF
+[dbservers]
+${database_private_ip}
+
+[dbservers:vars]
+ansible_ssh_user=ubuntu
+ansible_ssh_private_key_file="/home/ubuntu/.ssh/database-key.pem"
+
+[appservers]
+%{ for addr in app_private_ips ~}
+${addr}
+%{ endfor ~}
+
+[appservers:vars]
+ansible_ssh_user=ubuntu
+ansible_ssh_private_key_file="/home/ubuntu/.ssh/app-key.pem"
+EOF

@@ -1,0 +1,55 @@
+---
+- name: Create a django user
+  become: true
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    group: "{{ app_group }}"
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+    comment: "Django Application Service Account"
+
+- name: Allow the dubious ownership of the app folder 
+  become: true
+  community.general.git_config:
+    name: safe.directory
+    repo: "{{ git_url }}"
+    scope: global
+    value: "{{ app_path }}"
+    state: present
+
+- name: Django application clone of a single branch
+  become: true
+  ansible.builtin.git:
+    repo: "{{ git_url }}"
+    dest: "{{ app_path }}"
+    single_branch: true
+    version: main
+  notify:
+    - Check for pending migrations
+    - Restart gunicorn service
+    
+- name: Install application python requirements in virtualenv
+  become: true
+  ansible.builtin.pip:
+    requirements: "{{ app_path }}/requirements.txt"
+    virtualenv: "{{ app_venv_path }}"
+    virtualenv_command: "python3 -m venv"
+
+- name: Get paths of all directories except for .git
+  become: true
+  ansible.builtin.find:
+    paths: "{{ app_path }}"
+    file_type: directory
+    excludes: ".git"
+  register: files_to_chown
+
+- name: Change the owner of the app folder
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+  with_items: "{{ files_to_chown.files }}"
+  

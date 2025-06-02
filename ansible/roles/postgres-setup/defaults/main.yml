@@ -1,0 +1,15 @@
+---
+# PostgreSQL version
+postgresql_version: 16
+
+# VPC CIDR for database access
+vpc_cidr_block: "10.10.0.0/16"
+
+# Database name
+postgresql_database: "django"
+
+# Application username
+postgresql_django_user: "app"
+
+# Application password
+postgresql_django_password: "pass123"

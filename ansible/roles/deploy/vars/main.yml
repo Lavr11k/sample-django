@@ -1,0 +1,14 @@
+# Path of the application code
+app_path: "/opt/sample-django"
+
+# Virtual environment path to use
+app_venv_path: "{{ app_path }}/.venv"
+
+# System user which would run the application
+app_user: "django"
+
+# Group of the user which would run the application
+app_group: "www-data"
+
+# File path where env variables for the application would be stored
+app_env_dir_path: "/etc/django"

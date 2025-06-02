@@ -1,0 +1,3 @@
+app_path: "/opt/sample-django"
+
+app_socket_path: "/run/gunicorn/gunicorn.sock"

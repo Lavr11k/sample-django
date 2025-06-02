@@ -1,0 +1,17 @@
+# URL of the git repository
+git_url: "https://github.com/digitalocean/sample-django.git"
+
+# PostgreSQL hostname
+postgresql_host: "10.10.10.87"
+
+# PostgreSQL port
+postgresql_port: "5432"
+
+# PostgreSQL name
+postgresql_database: "django"
+
+# PostgreSQL username
+postgresql_django_user: "app"
+
+# PostgreSQL password
+postgresql_django_password: "pass123"
