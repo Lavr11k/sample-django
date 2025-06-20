@@ -4,3 +4,7 @@ staticfiles/
 
 terraform.tfstate*
 .terraform*
+
+docker/data/*
+
+.vscode

@@ -1,0 +1,6 @@
+.do
+.github
+.vscode
+docker
+ansible
+terraform*

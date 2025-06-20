@@ -4,9 +4,9 @@ services:
     volumes: 
       - ./data/db:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: django
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: pass123
+      POSTGRES_DB: ${POSTGRESQL_DJANGO_DATABASE}
+      POSTGRES_USER: ${POSTGRESQL_DJANGO_USER}
+      POSTGRES_PASSWORD: ${POSTGRESQL_DJANGO_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: md5
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U app -d django'"]
@@ -17,9 +17,7 @@ services:
       - "5432:5432"
 
   db-migration:
-    build:
-      context: ../
-      dockerfile: ./djangodockertest/Dockerfile
+    build: ..
     command: "python manage.py migrate"
     depends_on: 
       db:
@@ -28,9 +26,7 @@ services:
       DATABASE_URL: postgres://${POSTGRESQL_DJANGO_USER}:${POSTGRESQL_DJANGO_PASSWORD}@db:${POSTGRESQL_PORT}/${POSTGRESQL_DJANGO_DATABASE}
 
   web:
-    build:
-      context: ../
-      dockerfile: ./djangodockertest/Dockerfile
+    build: ..
     command: "gunicorn mysite.wsgi:application --bind 0.0.0.0:80"
     ports:
       - "8888:80"
