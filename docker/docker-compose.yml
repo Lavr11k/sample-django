@@ -1,7 +1,7 @@
-services: 
+services:
   db:
-    image: postgres  
-    volumes: 
+    image: postgres:12
+    volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${POSTGRESQL_DJANGO_DATABASE}
@@ -9,7 +9,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRESQL_DJANGO_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: md5
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U app -d django'"]
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${POSTGRESQL_DJANGO_USER} -d ${POSTGRESQL_DJANGO_DATABASE}'",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -19,7 +23,7 @@ services:
   db-migration:
     build: ..
     command: "python manage.py migrate"
-    depends_on: 
+    depends_on:
       db:
         condition: service_healthy
     environment:
@@ -27,14 +31,13 @@ services:
 
   web:
     build: ..
-    command: "gunicorn mysite.wsgi:application --bind 0.0.0.0:80"
     ports:
       - "8888:80"
-    depends_on: 
+    depends_on:
       db:
         condition: service_healthy
       db-migration:
-        condition: service_started
+        condition: service_completed_successfully
     environment:
       DJANGO_ALLOWED_HOSTS: "*"
       DATABASE_URL: postgres://${POSTGRESQL_DJANGO_USER}:${POSTGRESQL_DJANGO_PASSWORD}@db:${POSTGRESQL_PORT}/${POSTGRESQL_DJANGO_DATABASE}
