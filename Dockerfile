@@ -1,30 +1,48 @@
-FROM python:3.12-slim
+# Common base image
+FROM python:3.8-slim AS base
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Create non-root user and set permissions
+RUN addgroup --system djangogroup && \
+  adduser --system --ingroup djangogroup djangouser && \
+  mkdir /code && \
+  chown djangouser:djangogroup /code
 
 WORKDIR /code
 
-COPY ./requirements.txt .
+# Build stage
+FROM base AS build
 
+# Install required packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libpq-dev \
-    libssl-dev \
-    libc-dev \
- && pip install --upgrade pip \
- && pip install --no-cache-dir -r requirements.txt \
- && apt-get purge -y --auto-remove gcc \
- && rm -rf /var/lib/apt/lists/*
+  gcc \
+  libc-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
-COPY . /code/
+# Install requirements using pip
+COPY . .
+RUN pip install --upgrade pip \
+  && pip install --no-cache-dir -r requirements.txt
 
+# Collect static files
 RUN python manage.py collectstatic --noinput
 
-USER appuser
+# Main stage
+FROM base
 
-EXPOSE 8000
+# Copy binaries
+COPY --from=build ["/usr/local/bin/gunicorn", "/usr/local/bin/django-admin", "/usr/local/bin/sqlformat", "/usr/local/bin/"]
 
-CMD ["gunicorn", "mysite.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Copy packages installed with pip
+COPY --from=build /usr/local/lib/python3.8/site-packages /usr/local/lib/python3.8/site-packages
+
+# Copy the code with collected static files
+COPY --from=build /code .
+
+USER djangouser
+
+EXPOSE 80
+CMD ["gunicorn", "mysite.wsgi:application", "--bind", "0.0.0.0:80"]
