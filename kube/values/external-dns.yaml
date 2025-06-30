@@ -1,0 +1,15 @@
+sources:
+  - crd
+  - service
+  - ingress
+provider: aws
+annotationFilter: "external-dns.alpha.kubernetes.io/exclude notin (true)"
+labelFilter: "external-dns-exclude notin (true)"
+crd:
+  create: true
+serviceAccount:
+  create: true
+  name: external-dns
+  annotations:
+    "eks.amazonaws.com/role-arn": arn:aws:iam::290075658906:role/AllowExternalDNSUpdates
+  automountServiceAccountToken: true

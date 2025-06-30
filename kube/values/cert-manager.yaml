@@ -1,0 +1,9 @@
+crds:
+  enabled: true
+  keep: true
+serviceAccount:
+  create: true
+  name: cert-manager
+  annotations:
+    "eks.amazonaws.com/role-arn": arn:aws:iam::290075658906:role/cert-manager-acme-dns01-route53
+  automountServiceAccountToken: true

@@ -44,5 +44,5 @@ COPY --from=build /code .
 
 USER djangouser
 
-EXPOSE 80
-CMD ["gunicorn", "mysite.wsgi:application", "--bind", "0.0.0.0:80"]
+EXPOSE 8080
+CMD ["gunicorn", "mysite.wsgi:application", "--bind", "0.0.0.0:8080"]

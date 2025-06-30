@@ -1,0 +1,34 @@
+image:
+  repository: 290075658906.dkr.ecr.eu-central-1.amazonaws.com/dev/sample-django
+
+enableMigrations: true
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  hosts:
+    - host: sample-django.lavrik.pp.ua
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: sample-django.lavrik.pp.ua-tls
+      hosts:
+        - sample-django.lavrik.pp.ua
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80

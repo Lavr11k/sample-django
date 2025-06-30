@@ -1,0 +1,10 @@
+global:
+  defaultStorageClass: gp2
+
+auth:
+  username: app
+  database: django
+
+primary:
+  pgHbaConfiguration: |-
+    host django app all md5
