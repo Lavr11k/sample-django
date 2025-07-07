@@ -18,6 +18,20 @@ ingress:
       hosts:
         - sample-django.lavrik.pp.ua
 
+rbac:
+  create: true
+
+networkPolicy:
+  enabled: true
+  allowExternal: false
+  allowExternalEgress: true
+  ingressNSMatchLabels:
+    kubernetes.io/metadata.name: kube-system
+  ingressNSPodMatchLabels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+
 resources:
   limits:
     cpu: 100m

@@ -1,0 +1,72 @@
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+  storage:
+    bucketNames:
+      chunks: lavrik-itsyndicate-loki
+      ruler: lavrik-itsyndicate-loki
+    type: s3
+    s3:
+      region: eu-central-1
+  schemaConfig:
+    configs:
+      - from: 2024-04-01
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  compactor:
+    retention_enabled: true
+    delete_request_store: s3
+  querier:
+    max_concurrent: 2
+  ingester:
+    chunk_encoding: snappy
+
+test:
+  enabled: false
+
+lokiCanary:
+  enabled: false
+
+serviceAccount:
+  create: true
+  name: loki
+  annotations:
+    "eks.amazonaws.com/role-arn": "arn:aws:iam::290075658906:role/LokiS3AccessPolicy"
+
+gateway:
+  enabled: true
+  replicas: 1
+
+singleBinary:
+  replicas: 2
+  persistence:
+    storageClass: gp2
+
+backend:
+  replicas: 0
+
+write:
+  replicas: 0
+
+read:
+  replicas: 0
+
+ruler:
+  enabled: false
+
+overridesExporter:
+  enabled: false
+
+memcachedExporter:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+chunksCache:
+  enabled: false

@@ -49,3 +49,21 @@ Selector labels
 app.kubernetes.io/name: {{ include "sample-django.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Render security context by removing 'enabled' flag
+*/}}
+{{- define "sample-django.securityContext" -}}
+{{- $context := . -}}
+{{- $filtered := omit $context "enabled" -}}
+{{- $filtered | toYaml -}}
+{{- end -}}
+
+{{/*
+Returns true if PodSecurityPolicy is supported
+*/}}
+{{- define "common.psp.supported" -}}
+{{- if semverCompare "<1.25-0" .Capabilities.KubeVersion.Version -}}
+  {{- true -}}
+{{- end -}}
+{{- end -}}

@@ -27,15 +27,16 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.podSecurityContext }}
+      {{- if .Values.podSecurityContext.enabled }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
+        {{- include "sample-django.securityContext" .Values.podSecurityContext | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ include "sample-django.fullname" . }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
+          {{- if .Values.podSecurityContext.enabled }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
+            {{- include "sample-django.securityContext" .Values.podSecurityContext | nindent 12 }}
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -71,9 +72,9 @@ spec:
       initContainers:
         {{- if .Values.enableMigrations }}
         - name: "{{ .Chart.Name }}-migrations"
-          {{- with .Values.securityContext }}
+          {{- if .Values.podSecurityContext.enabled }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
+            {{- include "sample-django.securityContext" .Values.podSecurityContext | nindent 12 }}
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
