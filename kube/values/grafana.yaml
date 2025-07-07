@@ -1,0 +1,22 @@
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  path: /
+  pathType: ImplementationSpecific
+  hosts:
+    - grafana.lavrik.pp.ua
+  tls:
+    - secretName: grafana.lavrik.pp.ua-tls
+      hosts:
+        - grafana.lavrik.pp.ua
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.loki

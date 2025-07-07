@@ -12,16 +12,44 @@ fullnameOverride: ""
 podAnnotations: {}
 podLabels: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityPolicy:
+  create: false
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+podSecurityContext:
+  enabled: true
+  fsGroupChangePolicy: Always
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsGroup: 1001
+  supplementalGroups: []
+  allowedCapabilities: []
+
+serviceAccount:
+  create: true
+  annotations: {}
+  automountServiceAccountToken: false
+
+rbac:
+  create: false
+  role:
+    ## rules:
+    ##  - apiGroups:
+    ##    - extensions
+    ##    resources:
+    ##      - podsecuritypolicies
+    ##    verbs:
+    ##      - use
+    ##    resourceNames:
+    ##      - gce.unprivileged
+    ##
+    rules: []
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
 
 postgres:
   username: "app"
